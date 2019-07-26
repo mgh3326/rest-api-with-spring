@@ -25,6 +25,8 @@ import java.
 
         time.LocalDateTime;
 
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -57,7 +59,7 @@ public class EventControllerTest {
             .accept(MediaTypes.HAL_JSON)
             .content(objectMapper.writeValueAsString(event))
     )
-            .andDo(MockMvcResultHandlers.print())
+            .andDo(print())
             .andExpect(MockMvcResultMatchers.status().isCreated())
             .andExpect(MockMvcResultMatchers.jsonPath("id").exists())
             .andExpect(MockMvcResultMatchers.header().exists(HttpHeaders.LOCATION))
@@ -93,7 +95,7 @@ public class EventControllerTest {
             .accept(MediaTypes.HAL_JSON)
             .content(objectMapper.writeValueAsString(event))
     )
-            .andDo(MockMvcResultHandlers.print())
+            .andDo(print())
             .andExpect(MockMvcResultMatchers.status().isBadRequest())
     ;
   }
@@ -128,6 +130,11 @@ public class EventControllerTest {
             .contentType(MediaType.APPLICATION_JSON_UTF8)
             .content(this.objectMapper.writeValueAsString(eventDto))
     )
-            .andExpect(MockMvcResultMatchers.status().isBadRequest());
+            .andDo(print())
+            .andExpect(MockMvcResultMatchers.status().isBadRequest())
+            .andExpect(MockMvcResultMatchers.jsonPath("$[0].objectName").exists())
+            .andExpect(MockMvcResultMatchers.jsonPath("$[0].defaultMessage").exists())
+            .andExpect(MockMvcResultMatchers.jsonPath("$[0].code").exists())
+    ;
   }
 }
