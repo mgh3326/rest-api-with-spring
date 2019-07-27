@@ -1,7 +1,6 @@
 package me.khmoon.demoinflearnrestapi.events;
 
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +12,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import javax.validation.Valid;
 import java.net.URI;
+
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 
 @Controller
 @RequestMapping(value = "/api/events", produces = MediaTypes.HAL_JSON_UTF8_VALUE)
@@ -39,8 +40,13 @@ public class EventController {
     Event event = modelMapper.map(eventDto, Event.class);
     event.update();
     Event newEvent = this.eventRepository.save(event);
-    URI createUri = ControllerLinkBuilder.linkTo(EventController.class).slash(newEvent.getId()).toUri();
+    ControllerLinkBuilder selfLinkBuilder = linkTo(EventController.class).slash(newEvent.getId());
+    URI createUri = selfLinkBuilder.toUri();
     event.setId(10);
-    return ResponseEntity.created(createUri).body(event);
+    EventResource eventResource = new EventResource(event);
+
+    eventResource.add(linkTo(EventController.class).withRel("query-events"));
+    eventResource.add(selfLinkBuilder.withRel("update-event"));
+    return ResponseEntity.created(createUri).body(eventResource);
   }
 }
