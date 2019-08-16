@@ -1,5 +1,6 @@
 package me.khmoon.demoinflearnrestapi.events;
 
+import me.khmoon.demoinflearnrestapi.common.ErrorsResource;
 import org.modelmapper.ModelMapper;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
@@ -32,11 +33,11 @@ public class EventController {
   @PostMapping
   public ResponseEntity createEvent(@RequestBody @Valid EventDto eventDto, Errors errors) {
     if (errors.hasErrors()) {
-      return ResponseEntity.badRequest().body(errors);
+      return badRequest(errors);
     }
     eventValidator.validate(eventDto, errors);
     if (errors.hasErrors()) {
-      return ResponseEntity.badRequest().body(errors);
+      return badRequest(errors);
     }
     Event event = modelMapper.map(eventDto, Event.class);
     event.update();
@@ -50,5 +51,9 @@ public class EventController {
     eventResource.add(selfLinkBuilder.withRel("update-event"));
     eventResource.add(new Link("/docs/index.html#resources-events-create").withRel("profile"));
     return ResponseEntity.created(createUri).body(eventResource);
+  }
+
+  private ResponseEntity badRequest(Errors errors) {
+    return ResponseEntity.badRequest().body(new ErrorsResource(errors));
   }
 }

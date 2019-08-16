@@ -35,6 +35,7 @@ import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.li
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 
 @RunWith(SpringRunner.class)
@@ -193,9 +194,10 @@ public class EventControllerTest {
     )
             .andDo(print())
             .andExpect(MockMvcResultMatchers.status().isBadRequest())
-            .andExpect(MockMvcResultMatchers.jsonPath("$[0].objectName").exists())
-            .andExpect(MockMvcResultMatchers.jsonPath("$[0].defaultMessage").exists())
-            .andExpect(MockMvcResultMatchers.jsonPath("$[0].code").exists())
+            .andExpect(jsonPath("content[0].objectName").exists())
+            .andExpect(jsonPath("content[0].defaultMessage").exists())
+            .andExpect(jsonPath("content[0].code").exists())
+            .andExpect(jsonPath("_links.index").exists())
     ;
   }
 }
