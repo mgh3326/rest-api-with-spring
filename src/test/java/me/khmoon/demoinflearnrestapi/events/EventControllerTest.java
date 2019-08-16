@@ -77,14 +77,12 @@ public class EventControllerTest {
             .andExpect(MockMvcResultMatchers.jsonPath("free").value(false))
             .andExpect(MockMvcResultMatchers.jsonPath("offline").value(true))
             .andExpect(MockMvcResultMatchers.jsonPath("eventStatus").value(EventStatus.DRAFT.name()))
-            .andExpect(MockMvcResultMatchers.jsonPath("_links.self").exists())
-            .andExpect(MockMvcResultMatchers.jsonPath("_links.query-events").exists())
-            .andExpect(MockMvcResultMatchers.jsonPath("_links.update-event").exists())
             .andDo(document("create-event",
                     links(
                             linkWithRel("self").description("link to self"),
                             linkWithRel("query-events").description("link to query events"),
-                            linkWithRel("update-event").description("link to update an existing event")
+                            linkWithRel("update-event").description("link to update an existing event"),
+                            linkWithRel("profile").description("link to update an existing event")
                     ),
                     requestHeaders(
                             headerWithName(HttpHeaders.ACCEPT).description("accept header"),
@@ -124,7 +122,8 @@ public class EventControllerTest {
                             fieldWithPath("eventStatus").description("event status"),
                             fieldWithPath("_links.self.href").description("link to self"),
                             fieldWithPath("_links.query-events.href").description("link to query events"),
-                            fieldWithPath("_links.update-event.href").description("link to update an existing event")
+                            fieldWithPath("_links.update-event.href").description("link to update an existing event"),
+                            fieldWithPath("_links.profile.href").description("link to profile")
                     )
             ))
     ;
