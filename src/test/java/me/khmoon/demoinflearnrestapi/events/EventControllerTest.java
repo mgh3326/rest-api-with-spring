@@ -3,17 +3,12 @@ package me.khmoon.demoinflearnrestapi.events;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import me.khmoon.demoinflearnrestapi.common.RestDocsConfiguration;
 import me.khmoon.demoinflearnrestapi.common.TestDescription;
-import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.HttpHeaders;
@@ -22,12 +17,10 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
-import java.
-
-        time.LocalDateTime;
+import java.time.LocalDateTime;
+import java.util.stream.IntStream;
 
 import static org.springframework.restdocs.headers.HeaderDocumentation.*;
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.linkWithRel;
@@ -36,7 +29,8 @@ import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.docu
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -50,6 +44,8 @@ public class EventControllerTest {
 
   @Autowired
   ObjectMapper objectMapper;
+  @Autowired
+  EventRepository eventRepository;
 
   @Test
   @TestDescription("정상적으로 이벤트를 생성하는 테스트")
@@ -73,7 +69,7 @@ public class EventControllerTest {
             .content(objectMapper.writeValueAsString(event))
     )
             .andDo(print())
-            .andExpect(MockMvcResultMatchers.status().isCreated())
+            .andExpect(status().isCreated())
             .andExpect(MockMvcResultMatchers.jsonPath("id").exists())
             .andExpect(MockMvcResultMatchers.header().exists(HttpHeaders.LOCATION))
             .andExpect(MockMvcResultMatchers.header().string(HttpHeaders.CONTENT_TYPE, MediaTypes.HAL_JSON_UTF8_VALUE))
@@ -158,7 +154,7 @@ public class EventControllerTest {
             .content(objectMapper.writeValueAsString(event))
     )
             .andDo(print())
-            .andExpect(MockMvcResultMatchers.status().isBadRequest())
+            .andExpect(status().isBadRequest())
     ;
   }
 
@@ -170,7 +166,7 @@ public class EventControllerTest {
             .contentType(MediaType.APPLICATION_JSON_UTF8)
             .content(this.objectMapper.writeValueAsString(eventDto))
     )
-            .andExpect(MockMvcResultMatchers.status().isBadRequest());
+            .andExpect(status().isBadRequest());
   }
 
   @Test
@@ -193,11 +189,42 @@ public class EventControllerTest {
             .content(this.objectMapper.writeValueAsString(eventDto))
     )
             .andDo(print())
-            .andExpect(MockMvcResultMatchers.status().isBadRequest())
+            .andExpect(status().isBadRequest())
             .andExpect(jsonPath("content[0].objectName").exists())
             .andExpect(jsonPath("content[0].defaultMessage").exists())
             .andExpect(jsonPath("content[0].code").exists())
             .andExpect(jsonPath("_links.index").exists())
     ;
+  }
+
+  @Test
+  @TestDescription("30개의 이벤트를 10개씩 두번째 페이지 조회하기")
+  public void queryEvents() throws Exception {
+    // Given
+    IntStream.range(0, 30).forEach(this::generateEvent);
+
+    // When
+    this.mockMvc.perform(get("/api/events")
+            .param("page", "1")
+            .param("size", "10")
+            .param("sort", "name,DESC")
+    )
+            .andDo(print())
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("page").exists())
+            .andExpect(jsonPath("_embedded.eventList[0]._links.self").exists())
+            .andExpect(jsonPath("_links.self").exists())
+            .andExpect(jsonPath("_links.profile").exists())
+            .andDo(document("query-events"))
+    ;
+  }
+
+  private void generateEvent(int index) {
+    Event event = Event.builder()
+            .name("event " + index)
+            .description("test event")
+            .build();
+
+    this.eventRepository.save(event);
   }
 }

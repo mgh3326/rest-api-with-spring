@@ -2,12 +2,16 @@ package me.khmoon.demoinflearnrestapi.events;
 
 import me.khmoon.demoinflearnrestapi.common.ErrorsResource;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.Errors;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -51,6 +55,14 @@ public class EventController {
     eventResource.add(selfLinkBuilder.withRel("update-event"));
     eventResource.add(new Link("/docs/index.html#resources-events-create").withRel("profile"));
     return ResponseEntity.created(createUri).body(eventResource);
+  }
+
+  @GetMapping
+  public ResponseEntity queryEvents(Pageable pageable, PagedResourcesAssembler<Event> assembler) {
+    Page<Event> page = this.eventRepository.findAll(pageable);
+    var pagedResources = assembler.toResource(page, e -> new EventResource(e));
+    pagedResources.add(new Link("/docs/index.html#resources-events-list").withRel("profile"));
+    return ResponseEntity.ok(pagedResources);
   }
 
   private ResponseEntity badRequest(Errors errors) {
