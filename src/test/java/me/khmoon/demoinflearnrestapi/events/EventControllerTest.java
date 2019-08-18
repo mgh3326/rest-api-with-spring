@@ -1,22 +1,12 @@
 package me.khmoon.demoinflearnrestapi.events;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import me.khmoon.demoinflearnrestapi.common.RestDocsConfiguration;
+import me.khmoon.demoinflearnrestapi.common.BaseControllerTest;
 import me.khmoon.demoinflearnrestapi.common.TestDescription;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
@@ -28,28 +18,17 @@ import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.li
 import static org.springframework.restdocs.hypermedia.HypermediaDocumentation.links;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest
-@AutoConfigureMockMvc
-@AutoConfigureRestDocs
-@Import(RestDocsConfiguration.class)
-@ActiveProfiles("test")
-public class EventControllerTest {
-  @Autowired
-  MockMvc mockMvc;
 
-  @Autowired
-  ObjectMapper objectMapper;
+public class EventControllerTest extends BaseControllerTest {
+
   @Autowired
   EventRepository eventRepository;
-  @Autowired
-  ModelMapper modelMapper;
 
   @Test
   @TestDescription("정상적으로 이벤트를 생성하는 테스트")
@@ -224,7 +203,7 @@ public class EventControllerTest {
   }
 
   @Test
-  @TestDescription("기존의 이벤트를 하나 조죄하기")
+  @TestDescription("기존의 이벤트를 하나 조회하기")
   public void getEvent() throws Exception {
     // Given
     Event event = this.generateEvent(100);
